@@ -18,9 +18,7 @@
 
 namespace Yuki\Model;
 
-use Yuki\Exception as Exception;
-
-require_once __DIR__ . '\..\Exception\InvalidValueTypeException.php';
+use Yuki\Exception\InvalidValueTypeException;
 
 /**
  * Description of StatementLine
@@ -31,70 +29,70 @@ class StatementLine
 {
 
     private $accountGlCode; // string
+
     private $transactionCode; // string
+
     private $offsetAccount; // string
+
     private $offsetName; // string
+
     private $transactionDate; // datetime
+
     private $transactionDescription; // string
+
     private $amount; // decimal
 
     public function getAccountGlCode()
     {
-        return $this -> accountGlCode;
-    }
-
-    public function getTransactionCode()
-    {
-        return $this -> transactionCode;
-    }
-
-    public function getOffsetAccount()
-    {
-        return $this -> offsetAccount;
-    }
-
-    public function getOffsetName()
-    {
-        return $this -> offsetName;
-    }
-
-    public function getTransactionDate()
-    {
-        return $this -> transactionDate;
-    }
-
-    public function getTransactionDescription()
-    {
-        return $this -> transactionDescription;
-    }
-
-    public function getAmount()
-    {
-        return $this -> amount;
+        return $this->accountGlCode;
     }
 
     public function setAccountGlCode($accountGlCode)
     {
-        $this -> accountGlCode = $accountGlCode;
+        $this->accountGlCode = $accountGlCode;
+
         return $this;
+    }
+
+    public function getTransactionCode()
+    {
+        return $this->transactionCode;
     }
 
     public function setTransactionCode($transactionCode)
     {
-        $this -> transactionCode = $transactionCode;
+        $this->transactionCode = $transactionCode;
+
         return $this;
+    }
+
+    public function getOffsetAccount()
+    {
+        return $this->offsetAccount;
     }
 
     public function setOffsetAccount($offsetAccount)
     {
-        $this -> offsetAccount = $offsetAccount;
+        $this->offsetAccount = $offsetAccount;
+
         return $this;
+    }
+
+    public function getOffsetName()
+    {
+        return $this->offsetName;
     }
 
     public function setOffsetName($offsetName)
     {
-        $this -> offsetName = $offsetName;
+        $this->offsetName = $offsetName;
+
         return $this;
+    }
+
+    public function getTransactionDate()
+    {
+        return $this->transactionDate;
     }
 
     public function setTransactionDate($transactionDate)
@@ -102,24 +100,37 @@ class StatementLine
         try {
             $transactionDate = new \DateTime($transactionDate);
         } catch (Exception $exc) {
-            throw new Exception\InvalidValueTypeException(__CLASS__, 'transactionDate', gettype($transactionDate), 'valid date');
+            throw new InvalidValueTypeException(__CLASS__, 'transactionDate', gettype($transactionDate), 'valid date');
         }
-        $this -> transactionDate = $transactionDate -> format('Y-m-d\TH:i:s');
+        $this->transactionDate = $transactionDate->format('Y-m-d\TH:i:s');
+
         return $this;
+    }
+
+    public function getTransactionDescription()
+    {
+        return $this->transactionDescription;
     }
 
     public function setTransactionDescription($transactionDescription)
     {
-        $this -> transactionDescription = $transactionDescription;
+        $this->transactionDescription = $transactionDescription;
+
         return $this;
+    }
+
+    public function getAmount()
+    {
+        return $this->amount;
     }
 
     public function setAmount($amount)
     {
         if (!is_float($amount) && !is_integer($amount)) {
-            throw new Exception\InvalidValueTypeException(__CLASS__, 'amount', gettype($amount), 'float');
+            throw new InvalidValueTypeException(__CLASS__, 'amount', gettype($amount), 'float');
         }
-        $this -> amount = $amount;
+        $this->amount = $amount;
+
         return $this;
     }
 

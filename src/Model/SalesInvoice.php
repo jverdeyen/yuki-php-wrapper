@@ -18,11 +18,9 @@
 
 namespace Yuki\Model;
 
-use Yuki\Exception as Exception;
+use Yuki\Exception\InvalidValueTypeException;
+use Yuki\Exception\NonAllowedEnumValueException;
 use Yuki\ModelFactory;
-
-require_once __DIR__ . '\..\Exception\InvalidValueTypeException.php';
-require_once __DIR__ . '\..\Exception\NonAllowedEnumValueException.php';
 
 /**
  * Description of SalesInvoice
@@ -31,33 +29,43 @@ require_once __DIR__ . '\..\Exception\NonAllowedEnumValueException.php';
  */
 class SalesInvoice
 {
-
     private $reference;
+
     private $subject;
+
     private $paymentMethod;
+
     private $process;
+
     private $emailToCustomer;
+
     private $layout;
+
     private $date;
+
     private $dueDate;
+
     private $priceList;
+
     private $currency;
+
     private $remarks;
+
+    private $projectID;
+
     private $contact;
-    private $invoiceLines = array();
+
+    private $contactPerson;
+
+    private $invoiceLines = [];
 
     public function renderXml()
     {
         $xmlDoc = '<SalesInvoice>';
-        $xmlDoc .= $this -> recursiveXml($this);
+        $xmlDoc .= $this->recursiveXml($this);
         $xmlDoc .= '</SalesInvoice>';
-        return $xmlDoc;
-    }
 
-    public function addInvoiceLine(InvoiceLine $invoiceLine)
-    {
-        array_push($this -> invoiceLines, $invoiceLine);
-        return $this;
+        return $xmlDoc;
     }
 
     private function recursiveXml($elem)
@@ -67,124 +75,157 @@ class SalesInvoice
         foreach ($objects as $property => $value) {
             $property = ucfirst($property);
             if (is_array($value)) {
-                $xmlDoc .= '<' . $property . '>';
+                $xmlDoc .= '<'.$property.'>';
                 foreach ($value as $index => $child) {
-                    $xmlDoc .= '<' . ModelFactory::getName($child) . '>';
-                    $xmlDoc .= $this -> recursiveXml($child);
-                    $xmlDoc .= '</' . ModelFactory::getName($child) . '>';
+                    $xmlDoc .= '<'.ModelFactory::getName($child).'>';
+                    $xmlDoc .= $this->recursiveXml($child);
+                    $xmlDoc .= '</'.ModelFactory::getName($child).'>';
                 }
-                $xmlDoc .= '</' . $property . '>';
-            } else if (is_object($value)) {
-                $xmlDoc .= '<' . ModelFactory::getName($value) . '>';
-                $xmlDoc .= $this -> recursiveXml($value);
-                $xmlDoc .= '</' . ModelFactory::getName($value) . '>';
-            } else if ($value) {
-                $xmlDoc .= '<' . $property . '>' . $value . '</' . $property . '>';
+                $xmlDoc .= '</'.$property.'>';
+            } else {
+                if (is_object($value)) {
+                    $xmlDoc .= '<'.ModelFactory::getName($value).'>';
+                    $xmlDoc .= $this->recursiveXml($value);
+                    $xmlDoc .= '</'.ModelFactory::getName($value).'>';
+                } else {
+                    if ($value) {
+                        $xmlDoc .= '<'.$property.'>'.$value.'</'.$property.'>';
+                    }
+                }
             }
         }
+
         return $xmlDoc;
+    }
+
+    public function addInvoiceLine(InvoiceLine $invoiceLine)
+    {
+        array_push($this->invoiceLines, $invoiceLine);
+
+        return $this;
     }
 
     public function getReference()
     {
-        return $this -> reference;
-    }
-
-    public function getSubject()
-    {
-        return $this -> subject;
-    }
-
-    public function getPaymentMethod()
-    {
-        return $this -> paymentMethod;
-    }
-
-    public function getLayout()
-    {
-        return $this -> layout;
-    }
-
-    public function getPriceList()
-    {
-        return $this -> priceList;
-    }
-
-    public function getCurrency()
-    {
-        return $this -> currency;
-    }
-
-    public function getRemarks()
-    {
-        return $this -> remarks;
-    }
-
-    public function getContact()
-    {
-        return $this -> contact;
-    }
-
-    public function getInvoiceLines()
-    {
-        return $this -> invoiceLines;
+        return $this->reference;
     }
 
     public function setReference($reference)
     {
-        $this -> reference = $reference;
+        $this->reference = $reference;
+
         return $this;
+    }
+
+    public function getSubject()
+    {
+        return $this->subject;
     }
 
     public function setSubject($subject)
     {
-        $this -> subject = $subject;
+        $this->subject = $subject;
+
         return $this;
+    }
+
+    public function getPaymentMethod()
+    {
+        return $this->paymentMethod;
     }
 
     public function setPaymentMethod($paymentMethod)
     {
-        $enum = array('Unspecified', 'ElectronicTransfer', 'DirectCollection', 'Cash', 'DebitCard', 'CreditCard', 'ReceivedElectronically', 'ReceivedCash', 'ToSettle', 'iDeal', 'Online');
+        $enum = [
+            'Unspecified',
+            'ElectronicTransfer',
+            'DirectCollection',
+            'Cash',
+            'DebitCard',
+            'CreditCard',
+            'ReceivedElectronically',
+            'ReceivedCash',
+            'ToSettle',
+            'iDeal',
+            'Online',
+        ];
         if (!in_array($paymentMethod, $enum)) {
-            throw new Exception\NonAllowedEnumValueException(__CLASS__, 'PaymentMethod', $paymentMethod, json_encode($enum));
+            throw new NonAllowedEnumValueException(__CLASS__, 'PaymentMethod', $paymentMethod, json_encode($enum));
         }
-        $this -> paymentMethod = $paymentMethod;
+        $this->paymentMethod = $paymentMethod;
+
         return $this;
+    }
+
+    public function getLayout()
+    {
+        return $this->layout;
     }
 
     public function setLayout($layout)
     {
-        $this -> layout = $layout;
+        $this->layout = $layout;
+
         return $this;
+    }
+
+    public function getPriceList()
+    {
+        return $this->priceList;
     }
 
     public function setPriceList($priceList)
     {
-        $this -> priceList = $priceList;
+        $this->priceList = $priceList;
+
         return $this;
+    }
+
+    public function getCurrency()
+    {
+        return $this->currency;
     }
 
     public function setCurrency($currency)
     {
-        $this -> currency = $currency;
+        $this->currency = $currency;
+
         return $this;
+    }
+
+    public function getRemarks()
+    {
+        return $this->remarks;
     }
 
     public function setRemarks($remarks)
     {
-        $this -> remarks = $remarks;
+        $this->remarks = $remarks;
+
         return $this;
+    }
+
+    public function getContact()
+    {
+        return $this->contact;
     }
 
     public function setContact(Contact $contact)
     {
-        $this -> contact = $contact;
+        $this->contact = $contact;
+
         return $this;
+    }
+
+    public function getInvoiceLines()
+    {
+        return $this->invoiceLines;
     }
 
     public function setInvoiceLines($invoiceLines)
     {
-        $this -> invoiceLines = $invoiceLines;
+        $this->invoiceLines = $invoiceLines;
+
         return $this;
     }
 
@@ -193,9 +234,10 @@ class SalesInvoice
         try {
             $date = new \DateTime($date);
         } catch (Exception $ex) {
-            throw new Exception\InvalidValueTypeException(__CLASS__, 'date', gettype($date), 'valid date');
+            throw new InvalidValueTypeException(__CLASS__, 'date', gettype($date), 'valid date');
         }
-        $this -> date = $date -> format('Y-m-d');
+        $this->date = $date->format('Y-m-d');
+
         return $this;
     }
 
@@ -204,28 +246,62 @@ class SalesInvoice
         try {
             $dueDate = new \DateTime($dueDate);
         } catch (Exception $ex) {
-            throw new Exception\InvalidValueTypeException(__CLASS__, 'dueDate', gettype($dueDate), 'valid date');
+            throw new InvalidValueTypeException(__CLASS__, 'dueDate', gettype($dueDate), 'valid date');
         }
-        $this -> dueDate = $dueDate -> format('Y-m-d');
+        $this->dueDate = $dueDate->format('Y-m-d');
+
         return $this;
     }
 
     public function setProcess($process)
     {
         if (!is_bool($process)) {
-            throw new Exception\InvalidValueTypeException(__CLASS__, 'process', gettype($process), 'boolean');
+            throw new InvalidValueTypeException(__CLASS__, 'process', gettype($process), 'boolean');
         }
-        $this -> process = ($process) ? 'true' : 'false';
+        $this->process = ($process) ? 'true' : 'false';
+
         return $this;
     }
 
     public function setEmailTocustomer($emailToCustomer)
     {
         if (!is_bool($emailToCustomer)) {
-            throw new Exception\InvalidValueTypeException(__CLASS__, 'emailToCustomer', gettype($emailToCustomer), 'boolean');
+            throw new InvalidValueTypeException(__CLASS__, 'emailToCustomer', gettype($emailToCustomer), 'boolean');
         }
-        $this -> emailToCustomer = ($emailToCustomer) ? 'true' : 'false';
+        $this->emailToCustomer = ($emailToCustomer) ? 'true' : 'false';
+
         return $this;
     }
 
+    /**
+     * @return mixed
+     */
+    public function getProjectID()
+    {
+        return $this->projectID;
+    }
+
+    /**
+     * @param mixed $projectID
+     */
+    public function setProjectID($projectID)
+    {
+        $this->projectID = $projectID;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getContactPerson()
+    {
+        return $this->contactPerson;
+    }
+
+    /**
+     * @param mixed $contactPerson
+     */
+    public function setContactPerson($contactPerson)
+    {
+        $this->contactPerson = $contactPerson;
+    }
 }

@@ -18,10 +18,6 @@
 
 namespace Yuki\Model;
 
-use Yuki\Exception as Exception;
-
-require_once __DIR__ . '\..\Exception\InvalidValueTypeException.php';
-
 /**
  * Description of InvoiceLine
  *
@@ -31,39 +27,44 @@ class InvoiceLine
 {
 
     public $description;
+
     public $productQuantity;
+
     public $product;
 
     public function getDescription()
     {
-        return $this -> description;
-    }
-
-    public function getProductQuantity()
-    {
-        return $this -> productQuantity;
-    }
-
-    public function getProduct()
-    {
-        return $this -> product;
+        return $this->description;
     }
 
     public function setDescription($description)
     {
-        $this -> description = $description;
+        $this->description = $description;
+
         return $this;
+    }
+
+    public function getProductQuantity()
+    {
+        return $this->productQuantity;
     }
 
     public function setProductQuantity($productQuantity)
     {
-        $this -> productQuantity = $productQuantity;
+        $this->productQuantity = $productQuantity;
+
         return $this;
+    }
+
+    public function getProduct()
+    {
+        return $this->product;
     }
 
     public function setProduct(Product $product)
     {
-        $this -> product = $product;
+        $this->product = $product;
+
         return $this;
     }
 

@@ -18,9 +18,7 @@
 
 namespace Yuki\Model;
 
-use Yuki\Exception as Exception;
-
-require_once __DIR__ . '\..\Exception\InvalidValueTypeException.php';
+use Yuki\Exception\InvalidValueTypeException;
 
 /**
  * Description of Product
@@ -31,114 +29,131 @@ class Product
 {
 
     public $description;
+
     public $reference;
+
     public $category;
+
     public $salesPrice;
+
     public $VATPercentage;
+
     public $VATIncluded;
+
     public $VATType;
+
     public $GLAccountCode;
+
     public $remarks;
 
     public function getDescription()
     {
-        return $this -> description;
-    }
-
-    public function getReference()
-    {
-        return $this -> reference;
-    }
-
-    public function getCategory()
-    {
-        return $this -> category;
-    }
-
-    public function getSalesPrice()
-    {
-        return $this -> salesPrice;
-    }
-
-    public function getVATPercentage()
-    {
-        return $this -> VATPercentage;
-    }
-
-    public function getVATIncluded()
-    {
-        return $this -> VATIncluded;
-    }
-
-    public function getVATType()
-    {
-        return $this -> VATType;
-    }
-
-    public function getGLAccountCode()
-    {
-        return $this -> GLAccountCode;
-    }
-
-    public function getRemarks()
-    {
-        return $this -> remarks;
+        return $this->description;
     }
 
     public function setDescription($description)
     {
-        $this -> description = $description;
+        $this->description = $description;
+
         return $this;
+    }
+
+    public function getReference()
+    {
+        return $this->reference;
     }
 
     public function setReference($reference)
     {
-        $this -> reference = $reference;
+        $this->reference = $reference;
+
         return $this;
+    }
+
+    public function getCategory()
+    {
+        return $this->category;
     }
 
     public function setCategory($category)
     {
-        $this -> category = $category;
+        $this->category = $category;
+
         return $this;
+    }
+
+    public function getSalesPrice()
+    {
+        return $this->salesPrice;
     }
 
     public function setSalesPrice($salesPrice)
     {
-        $this -> salesPrice = $salesPrice;
+        $this->salesPrice = $salesPrice;
+
         return $this;
+    }
+
+    public function getVATPercentage()
+    {
+        return $this->VATPercentage;
     }
 
     public function setVATPercentage($VATPercentage)
     {
-        $this -> VATPercentage = $VATPercentage;
+        $this->VATPercentage = $VATPercentage;
+
         return $this;
+    }
+
+    public function getVATIncluded()
+    {
+        return $this->VATIncluded;
     }
 
     public function setVATIncluded($VATIncluded)
     {
         if (!is_bool($VATIncluded)) {
-            throw new Exception\InvalidValueTypeException(__CLASS__, 'VATIncluded', gettype($VATIncluded), 'boolean');
+            throw new InvalidValueTypeException(__CLASS__, 'VATIncluded', gettype($VATIncluded), 'boolean');
         }
-        $this -> VATIncluded = ($VATIncluded) ? 'true' : 'false';
+        $this->VATIncluded = ($VATIncluded) ? 'true' : 'false';
+
         return $this;
+    }
+
+    public function getVATType()
+    {
+        return $this->VATType;
     }
 
     public function setVATType($VATType)
     {
-        $this -> VATType = $VATType;
+        $this->VATType = $VATType;
+
         return $this;
+    }
+
+    public function getGLAccountCode()
+    {
+        return $this->GLAccountCode;
     }
 
     public function setGLAccountCode($GLAccountCode)
     {
-        $this -> GLAccountCode = $GLAccountCode;
+        $this->GLAccountCode = $GLAccountCode;
+
         return $this;
+    }
+
+    public function getRemarks()
+    {
+        return $this->remarks;
     }
 
     public function setRemarks($remarks)
     {
-        $this -> remarks = $remarks;
+        $this->remarks = $remarks;
+
         return $this;
     }
 

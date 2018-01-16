@@ -18,19 +18,13 @@
 
 namespace Yuki;
 
-use Yuki\Exception as Exception;
-
-require_once __DIR__ . '\Exception\NoAuthenticationResultException.php';
-require_once __DIR__ . '\Exception\InvalidSessionIDException.php';
-require_once __DIR__ . '\Exception\InvalidDomainIDException.php';
-require_once __DIR__ . '\Exception\InvalidCredentialsException.php';
-require_once __DIR__ . '\Exception\InvalidAccessKeyException.php';
-require_once __DIR__ . '\Exception\InvalidAdministrationNameException.php';
-
-require_once __DIR__ . '\Model\Administration.php';
-require_once __DIR__ . '\Model\Domain.php';
-
-require_once __DIR__ . '\ModelFactory.php';
+use Yuki\Exception\InvalidAccessKeyException;
+use Yuki\Exception\InvalidAdministrationNameException;
+use Yuki\Exception\InvalidCredentialsException;
+use Yuki\Exception\InvalidDomainIDException;
+use Yuki\Exception\InvalidSessionIDException;
+use Yuki\Exception\ModelNotFoundException;
+use Yuki\Exception\NoAuthenticationResultException;
 
 /**
  * Description of the main Yuki Class
@@ -39,21 +33,24 @@ require_once __DIR__ . '\ModelFactory.php';
  */
 class Yuki
 {
-
     const WS_URL = 'https://api.yukiworks.be/ws/';
 
     protected $sessionID;
+
     protected $administrationID;
+
     protected $accessKey;
+
     protected $soap;
 
     public function __construct($service)
     {
-        $this -> soap = new \SoapClient(self::WS_URL . $service);
+        $this->soap = new \SoapClient(self::WS_URL.$service);
     }
 
     /**
      * List all active administrations that are available for the given Session ID
+     *
      * @return array List of Administrations
      * @throws InvalidSessionIDException
      * @throws \Exception
@@ -61,244 +58,113 @@ class Yuki
     public function administrations()
     {
         // Check for sessionId first
-        if (!$this -> getSessionID()) {
-            throw new Exception\InvalidSessionIDException();
+        if (!$this->getSessionID()) {
+            throw new InvalidSessionIDException();
         }
 
-        $request = array(
-            "sessionID" => $this -> getSessionID());
+        $request = [
+            "sessionID" => $this->getSessionID(),
+        ];
 
         try {
-            $result = $this -> soap -> Administrations($request);
+            $result = $this->soap->Administrations($request);
         } catch (\Exception $ex) {
             // Just pass the exception through and let the index handle the exception
             throw $ex;
         }
 
         // Return the list of Administrations
-        return $this -> getModelsFromXML($result -> AdministrationsResult -> any, 'Administration');
+        return $this->getModelsFromXML($result->AdministrationsResult->any, 'Administration');
     }
 
     /**
-     * List all active administrations
-     * @return array
-     * @throws Exception\InvalidSessionIDException
-     * @throws \Exception
+     * Get the Session ID
+     *
+     * @return string
      */
-    public function companies()
+    function getSessionID()
     {
-        // Check for sessionId first
-        if (!$this -> getSessionID()) {
-            throw new Exception\InvalidSessionIDException();
-        }
+        return $this->sessionID;
+    }
 
-        $request = array(
-            "sessionID" => $this -> getSessionID());
+    /**
+     * Set the Session ID (used for future requests)
+     *
+     * @param string $sessionID
+     *
+     * @return $this
+     */
+    function setSessionID($sessionID)
+    {
+        $this->sessionID = $sessionID;
 
-        try {
-            $result = $this -> soap -> Companies($request);
-        } catch (\Exception $ex) {
-            // Just pass the exception through and let the index handle the exception
-            throw $ex;
-        }
+        return $this;
+    }
 
-        $responseArray = $this -> parseXMLResponse($result -> CompaniesResult -> any);
-        $return = array();
-        foreach ($responseArray as $key => $value) {
-            if ($value['tag'] === 'Name') {
-                array_push($return, $value['value']);
+    /**
+     * Parse the given XML to list of requested models and their properties
+     *
+     * @param string  $response
+     * @param string  $model
+     * @param boolean $returnOne
+     *
+     * @return array|\Yuki\Model
+     * @throws ModelNotFoundException
+     */
+    protected function getModelsFromXML($response, $model, $returnOne = false)
+    {
+        $return = [];
+
+        // Parse the XML to an itterable array first
+        $responseArray = $this->parseXMLResponse($response);
+
+        $parentnode = $model.'s';
+        $childnode = $model;
+
+        $modelFactory = new ModelFactory();
+        if (!$modelFactory->checkModel($model)) {
+            throw new ModelNotFoundException($model);
+        } else {
+            // Loop the items
+            foreach ($responseArray as $key => $value) {
+                if ($value['tag'] === $parentnode) {
+                    // Do nothing with the open/close type
+                } else {
+                    if ($value['tag'] === $childnode) {
+                        // Get the ID from the attributes only from the 'open' type
+                        if ($value['type'] === 'open') {
+
+                            // Initiate a new Model
+                            $modelobj = $modelFactory->getModel($model);
+                            // Set the ID
+                            $modelobj->setId($value['attributes']['ID']);
+                        } else {
+                            if ($value['type'] === 'close') {
+
+                                // End of the model, add the finished one to the list or return
+                                if ($returnOne) {
+                                    return $modelobj;
+                                } else {
+                                    array_push($return, $modelobj);
+                                }
+                            }
+                        }
+                    } else {
+                        // Set the value based on the tag
+                        $modelobj->{'set'.$value['tag']}($value['value']);
+                    }
+                }
             }
         }
 
-        // Return the list of Administrations
         return $return;
     }
 
     /**
-     * Get the Administration ID from Name
-     * @param string $administrationName
-     * @return string
-     * @throws Exception\InvalidAdministrationNameException
-     * @throws \Exception
-     */
-    public function getAdministrationIDByName($administrationName)
-    {
-        // Check for sessionId first
-        if (!$administrationName) {
-            throw new Exception\InvalidAdministrationNameException();
-        }
-
-        $request = array(
-            "sessionID"          => $this -> getSessionID(),
-            "administrationName" => $administrationName);
-
-        try {
-            $result = $this -> soap -> AdministrationID($request);
-        } catch (\Exception $ex) {
-            // Just pass the exception through and let the index handle the exception
-            throw $ex;
-        }
-
-        // Return the list of Administrations
-        return $result -> AdministrationIDResult;
-    }
-
-    /**
-     * List all active domains that are available for the given access Token
-     * @return List of Domains
-     * @throws InvalidSessionIDException
-     * @throws \Exception
-     */
-    public function domains()
-    {
-        // Check for sessionId first
-        if (!$this -> getSessionID()) {
-            throw new Exception\InvalidSessionIDException();
-        }
-
-        $request = array(
-            "sessionID" => $this -> getSessionID());
-
-        try {
-            $result = $this -> soap -> Domains($request);
-        } catch (\Exception $ex) {
-            // Just pass the exception through and let the index handle the exception
-            throw $ex;
-        }
-
-        // Return the list of Administrations
-        return $this -> getModelsFromXML($result -> DomainsResult -> any, 'Domain');
-    }
-
-    /**
-     * Get the current set domain for given session
-     * @return GetCurrentDomainResult
-     * @throws InvalidSessionIDException
-     * @throws \Exception
-     */
-    public function getCurrentDomain()
-    {
-        // Check for sessionId first
-        if (!$this -> getSessionID()) {
-            throw new Exception\InvalidSessionIDException();
-        }
-
-        $request = array(
-            "sessionID" => $this -> getSessionID());
-
-        try {
-            $result = $this -> soap -> GetCurrentDomain($request);
-        } catch (\Exception $ex) {
-            // Just pass the exception through and let the index handle the exception
-            throw $ex;
-        }
-
-        // Return the Model
-        return $this -> getModelsFromXML($result -> GetCurrentDomainResult -> any, 'Domain', true);
-    }
-
-    /**
-     * Set which domain needs to be used for the current session
-     * @param type $domainId
-     * @return $this
-     * @throws InvalidSessionIDException
-     * @throws InvalidDomainIDException
-     * @throws \Exception
-     */
-    public function setCurrentDomain($domainId)
-    {
-        // Check for sessionId first
-        if (!$this -> getSessionID()) {
-            throw new Exception\InvalidSessionIDException();
-        }
-        // Check for given domain
-        if (!$domainId) {
-            throw new Exception\InvalidDomainIDException();
-        }
-
-        $request = array(
-            "sessionID" => $this -> getSessionID(),
-            "domainID"  => $domainId);
-
-        try {
-            $result = $this -> soap -> SetCurrentDomain($request);
-        } catch (\Exception $ex) {
-            // Just pass the exception through and let the index handle the exception
-            throw $ex;
-        }
-
-        return $this;
-    }
-
-    /**
-     * DEPRECATED
-     * Authenticate with the Web service, using a username and password, to get
-     * the current Session ID and store the result for future usage.
-     * @param string $userName
-     * @param string $password
-     * @return $this
-     * @throws InvalidCredentialsException
-     * @throws \Exception
-     */
-    public function authenticateByUserName($userName, $password)
-    {
-        // Check for sessionId first
-        if (!$userName || !$password) {
-            throw new Exception\InvalidCredentialsException();
-        }
-
-        $request = array(
-            "userName" => $userName,
-            "password" => $password);
-
-        try {
-            $result = $this -> soap -> AuthenticateByUserName($request);
-        } catch (\Exception $ex) {
-            // Just pass the exception through and let the index handle the exception
-            throw $ex;
-        }
-
-        // Set the returned sessionID for future usage
-        $this -> setSessionID($result -> AuthenticateResult);
-
-        return $this;
-    }
-
-    /**
-     * Authenticate with the Web service, using the accessKey, to get the current
-     * active Session and store the result for future usage.
-     * @return self
-     * @throws InvalidAccessKeyException
-     */
-    public function authenticate()
-    {
-        // Check for given domain
-        if (!$this -> getAccessKey()) {
-            throw new Exception\InvalidAccessKeyException();
-        }
-
-        $request = array(
-            "accessKey" => $this -> getAccessKey());
-
-        try {
-            $result = $this -> soap -> Authenticate($request);
-        } catch (\Exception $ex) {
-            // Just pass the exception through and let the index handle the exception
-            throw $ex;
-        }
-        if (!property_exists($result, 'AuthenticateResult')) {
-            // Catch/Handle exceptions here
-            throw new Exception\NoAuthenticationResultException();
-        }
-        // Set the returned sessionID for future usage
-        $this -> setSessionID($result -> AuthenticateResult);
-
-        return $this;
-    }
-
-    /**
      * Parse the XML response to an accessible object
+     *
      * @param string $response
+     *
      * @return array
      */
     protected function parseXMLResponse($response)
@@ -313,115 +179,284 @@ class Yuki
     }
 
     /**
-     * Parse the given XML to list of requested models and their properties
-     * @param string $response
-     * @param string $model
-     * @param boolean $returnOne
-     * @return array|\Yuki\Model
-     * @throws Exception\ModelNotFoundException
+     * List all active administrations
+     *
+     * @return array
+     * @throws Exception\InvalidSessionIDException
+     * @throws \Exception
      */
-    protected function getModelsFromXML($response, $model, $returnOne = false)
+    public function companies()
     {
-        $return = array();
+        // Check for sessionId first
+        if (!$this->getSessionID()) {
+            throw new InvalidSessionIDException();
+        }
 
-        // Parse the XML to an itterable array first
-        $responseArray = $this -> parseXMLResponse($response);
+        $request = [
+            "sessionID" => $this->getSessionID(),
+        ];
 
-        $parentnode = $model . 's';
-        $childnode = $model;
+        try {
+            $result = $this->soap->Companies($request);
+        } catch (\Exception $ex) {
+            // Just pass the exception through and let the index handle the exception
+            throw $ex;
+        }
 
-        $modelFactory = new ModelFactory();
-        if (!$modelFactory -> checkModel($model)) {
-            throw new Exception\ModelNotFoundException($model);
-        } else {
-            // Loop the items
-            foreach ($responseArray as $key => $value) {
-                if ($value['tag'] === $parentnode) {
-                    // Do nothing with the open/close type
-                } else if ($value['tag'] === $childnode) {
-                    // Get the ID from the attributes only from the 'open' type
-                    if ($value['type'] === 'open') {
-
-                        // Initiate a new Model
-                        $modelobj = $modelFactory -> getModel($model);
-                        // Set the ID
-                        $modelobj -> setId($value['attributes']['ID']);
-                    } else if ($value['type'] === 'close') {
-
-                        // End of the model, add the finished one to the list or return
-                        if ($returnOne) {
-                            return $modelobj;
-                        } else {
-                            array_push($return, $modelobj);
-                        }
-                    }
-                } else {
-                    // Set the value based on the tag
-                    $modelobj -> {'set' . $value['tag']}($value['value']);
-                }
+        $responseArray = $this->parseXMLResponse($result->CompaniesResult->any);
+        $return = [];
+        foreach ($responseArray as $key => $value) {
+            if ($value['tag'] === 'Name') {
+                array_push($return, $value['value']);
             }
         }
 
+        // Return the list of Administrations
         return $return;
     }
 
     /**
-     * Get the Session ID
+     * Get the Administration ID from Name
+     *
+     * @param string $administrationName
+     *
      * @return string
+     * @throws Exception\InvalidAdministrationNameException
+     * @throws \Exception
      */
-    function getSessionID()
+    public function getAdministrationIDByName($administrationName)
     {
-        return $this -> sessionID;
+        // Check for sessionId first
+        if (!$administrationName) {
+            throw new InvalidAdministrationNameException();
+        }
+
+        $request = [
+            "sessionID" => $this->getSessionID(),
+            "administrationName" => $administrationName,
+        ];
+
+        try {
+            $result = $this->soap->AdministrationID($request);
+        } catch (\Exception $ex) {
+            // Just pass the exception through and let the index handle the exception
+            throw $ex;
+        }
+
+        // Return the list of Administrations
+        return $result->AdministrationIDResult;
     }
 
     /**
-     * Get the AdministrationID
-     * @return string
+     * List all active domains that are available for the given access Token
+     *
+     * @return List of Domains
+     * @throws InvalidSessionIDException
+     * @throws \Exception
      */
-    function getAdministrationID()
+    public function domains()
     {
-        return $this -> administrationID;
+        // Check for sessionId first
+        if (!$this->getSessionID()) {
+            throw new InvalidSessionIDException();
+        }
+
+        $request = [
+            "sessionID" => $this->getSessionID(),
+        ];
+
+        try {
+            $result = $this->soap->Domains($request);
+        } catch (\Exception $ex) {
+            // Just pass the exception through and let the index handle the exception
+            throw $ex;
+        }
+
+        // Return the list of Administrations
+        return $this->getModelsFromXML($result->DomainsResult->any, 'Domain');
+    }
+
+    /**
+     * Get the current set domain for given session
+     *
+     * @return GetCurrentDomainResult
+     * @throws InvalidSessionIDException
+     * @throws \Exception
+     */
+    public function getCurrentDomain()
+    {
+        // Check for sessionId first
+        if (!$this->getSessionID()) {
+            throw new InvalidSessionIDException();
+        }
+
+        $request = [
+            "sessionID" => $this->getSessionID(),
+        ];
+
+        try {
+            $result = $this->soap->GetCurrentDomain($request);
+        } catch (\Exception $ex) {
+            // Just pass the exception through and let the index handle the exception
+            throw $ex;
+        }
+
+        // Return the Model
+        return $this->getModelsFromXML($result->GetCurrentDomainResult->any, 'Domain', true);
+    }
+
+    /**
+     * Set which domain needs to be used for the current session
+     *
+     * @param type $domainId
+     *
+     * @return $this
+     * @throws InvalidSessionIDException
+     * @throws InvalidDomainIDException
+     * @throws \Exception
+     */
+    public function setCurrentDomain($domainId)
+    {
+        // Check for sessionId first
+        if (!$this->getSessionID()) {
+            throw new InvalidSessionIDException();
+        }
+        // Check for given domain
+        if (!$domainId) {
+            throw new InvalidDomainIDException();
+        }
+
+        $request = [
+            "sessionID" => $this->getSessionID(),
+            "domainID" => $domainId,
+        ];
+
+        try {
+            $result = $this->soap->SetCurrentDomain($request);
+        } catch (\Exception $ex) {
+            // Just pass the exception through and let the index handle the exception
+            throw $ex;
+        }
+
+        return $this;
+    }
+
+    /**
+     * DEPRECATED
+     * Authenticate with the Web service, using a username and passord, to get
+     * the current Session ID and store the result for future usage.
+     *
+     * @param string $userName
+     * @param string $password
+     *
+     * @return $this
+     * @throws InvalidCredentialsException
+     * @throws \Exception
+     */
+    public function authenticateByUserName($userName, $password)
+    {
+        // Check for sessionId first
+        if (!$userName || !$password) {
+            throw new InvalidCredentialsException();
+        }
+
+        $request = [
+            "userName" => $userName,
+            "password" => $password,
+        ];
+
+        try {
+            $result = $this->soap->AuthenticateByUserName($request);
+        } catch (\Exception $ex) {
+            // Just pass the exception through and let the index handle the exception
+            throw $ex;
+        }
+
+        // Set the returned sessionID for future usage
+        $this->setSessionID($result->AuthenticateResult);
+
+        return $this;
+    }
+
+    /**
+     * Authenticate with the Web service, using the accessKey, to get the current
+     * active Session and store the result for future usage.
+     *
+     * @return self
+     * @throws InvalidAccessKeyException
+     */
+    public function authenticate()
+    {
+        // Check for given domain
+        if (!$this->getAccessKey()) {
+            throw new InvalidAccessKeyException();
+        }
+
+        $request = [
+            "accessKey" => $this->getAccessKey(),
+        ];
+
+        try {
+            $result = $this->soap->Authenticate($request);
+        } catch (\Exception $ex) {
+            // Just pass the exception through and let the index handle the exception
+            throw $ex;
+        }
+        if (!property_exists($result, 'AuthenticateResult')) {
+            // Catch/Handle exceptions here
+            throw new NoAuthenticationResultException();
+        }
+        // Set the returned sessionID for future usage
+        $this->setSessionID($result->AuthenticateResult);
+
+        return $this;
     }
 
     /**
      * Get the main API Token (Access Key)
+     *
      * @return string
      */
     function getAccessKey()
     {
-        return $this -> accessKey;
-    }
-
-    /**
-     * Set the Session ID (used for future requests)
-     * @param string $sessionID
-     * @return $this
-     */
-    function setSessionID($sessionID)
-    {
-        $this -> sessionID = $sessionID;
-        return $this;
-    }
-
-    /**
-     * Set the AdministrationID
-     * @param string $administrationID
-     * @return $this
-     */
-    function setAdministrationID($administrationID)
-    {
-        $this -> administrationID = $administrationID;
-        return $this;
+        return $this->accessKey;
     }
 
     /**
      * Set the main API Token (Access Key)
+     *
      * @param string $accessKey
+     *
      * @return $this
      */
     function setAccessKey($accessKey)
     {
-        $this -> accessKey = $accessKey;
+        $this->accessKey = $accessKey;
+
+        return $this;
+    }
+
+    /**
+     * Get the AdministrationID
+     *
+     * @return string
+     */
+    function getAdministrationID()
+    {
+        return $this->administrationID;
+    }
+
+    /**
+     * Set the AdministrationID
+     *
+     * @param string $administrationID
+     *
+     * @return $this
+     */
+    function setAdministrationID($administrationID)
+    {
+        $this->administrationID = $administrationID;
+
         return $this;
     }
 

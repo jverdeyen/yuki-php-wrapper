@@ -26,89 +26,137 @@ namespace Yuki\Model;
 class Administration
 {
 
+    public $CoCNumber;
+
+    public $VATNumber;
+
     private $id;
+
     private $name;
+
     private $addressLine;
+
     private $postcode;
+
     private $city;
+
     private $country;
+
     private $startDate;
 
     public function getId()
     {
-        return $this -> id;
-    }
-
-    public function getName()
-    {
-        return $this -> name;
-    }
-
-    public function getAddressLine()
-    {
-        return $this -> addressLine;
-    }
-
-    public function getPostcode()
-    {
-        return $this -> postcode;
-    }
-
-    public function getCity()
-    {
-        return $this -> city;
-    }
-
-    public function getCountry()
-    {
-        return $this -> country;
-    }
-
-    public function getStartDate()
-    {
-        return $this -> startDate;
+        return $this->id;
     }
 
     public function setId($id)
     {
-        $this -> id = $id;
+        $this->id = $id;
+
         return $this;
+    }
+
+    public function getName()
+    {
+        return $this->name;
     }
 
     public function setName($name)
     {
-        $this -> name = $name;
+        $this->name = $name;
+
         return $this;
+    }
+
+    public function getAddressLine()
+    {
+        return $this->addressLine;
     }
 
     public function setAddressLine($addressLine)
     {
-        $this -> addressLine = $addressLine;
+        $this->addressLine = $addressLine;
+
         return $this;
+    }
+
+    public function getPostcode()
+    {
+        return $this->postcode;
     }
 
     public function setPostcode($postcode)
     {
-        $this -> postcode = $postcode;
+        $this->postcode = $postcode;
+
         return $this;
+    }
+
+    public function getCity()
+    {
+        return $this->city;
     }
 
     public function setCity($city)
     {
-        $this -> city = $city;
+        $this->city = $city;
+
         return $this;
+    }
+
+    public function getCountry()
+    {
+        return $this->country;
     }
 
     public function setCountry($country)
     {
-        $this -> country = $country;
+        $this->country = $country;
+
         return $this;
+    }
+
+    public function getStartDate()
+    {
+        return $this->startDate;
     }
 
     public function setStartDate($startDate)
     {
-        $this -> startDate = $startDate;
+        $this->startDate = $startDate;
+
         return $this;
     }
 
+    /**
+     * @return mixed
+     */
+    public function getCoCNumber()
+    {
+        return $this->CoCNumber;
+    }
+
+    /**
+     * @param mixed $CoCNumber
+     */
+    public function setCoCNumber($CoCNumber)
+    {
+        $this->CoCNumber = $CoCNumber;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getVATNumber()
+    {
+        return $this->VATNumber;
+    }
+
+    /**
+     * @param mixed $VATNumber
+     */
+    public function setVATNumber($VATNumber)
+    {
+        $this->VATNumber = $VATNumber;
+    }
 }

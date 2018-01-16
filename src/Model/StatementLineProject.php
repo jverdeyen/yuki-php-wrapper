@@ -18,8 +18,6 @@
 
 namespace Yuki\Model;
 
-require_once __DIR__ . '\StatementLine.php';
-
 /**
  * Description of StatementLineProject
  *
@@ -29,27 +27,30 @@ class StatementLineProject extends StatementLine
 {
 
     private $projectCode;
+
     private $projectName;
 
     public function getProjectCode()
     {
-        return $this -> projectCode;
-    }
-
-    public function getProjectName()
-    {
-        return $this -> projectName;
+        return $this->projectCode;
     }
 
     public function setProjectCode($projectCode)
     {
-        $this -> projectCode = $projectCode;
+        $this->projectCode = $projectCode;
+
         return $this;
+    }
+
+    public function getProjectName()
+    {
+        return $this->projectName;
     }
 
     public function setProjectName($projectName)
     {
-        $this -> projectName = $projectName;
+        $this->projectName = $projectName;
+
         return $this;
     }
 

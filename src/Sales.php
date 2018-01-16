@@ -18,15 +18,9 @@
 
 namespace Yuki;
 
-require_once __DIR__ . '\Yuki.php';
-
-require_once __DIR__ . '\Exception\InvalidAdministrationIDException.php';
-require_once __DIR__ . '\Exception\InvalidSalesInvoiceException.php';
-
-require_once __DIR__ . '\Model\SalesInvoice.php';
-require_once __DIR__ . '\Model\Contact.php';
-require_once __DIR__ . '\Model\InvoiceLine.php';
-require_once __DIR__ . '\Model\Product.php';
+use Yuki\Exception\InvalidAdministrationIDException;
+use Yuki\Exception\InvalidSalesInvoiceException;
+use Yuki\Exception\InvalidSessionIDException;
 
 /**
  * Description of the Yuki Sales Sub service
@@ -45,57 +39,60 @@ class Sales extends Yuki
 
     /**
      * Process Sales Invoice
-     * @param string $salesInvoice
+     *
+     * @param array $salesInvoice
+     *
      * @return stdclass
      * @throws \Exception
      */
-    public function processSalesInvoices($salesInvoices)
+    public function processSalesInvoices(array $salesInvoices)
     {
         // Check for sessionId first
-        if (!$this -> getSessionID()) {
-            throw new Exception\InvalidSessionIDException();
+        if (!$this->getSessionID()) {
+            throw new InvalidSessionIDException();
         }
         // Check for sessionId first
-        if (!$this -> getAdministrationID()) {
-            throw new Exception\InvalidAdministrationIDException();
+        if (!$this->getAdministrationID()) {
+            throw new InvalidAdministrationIDException();
         }
         // Check for given domain
         if (!$salesInvoices) {
-            throw new Exception\InvalidSalesInvoiceException();
+            throw new InvalidSalesInvoiceException();
         } else {
             $xmlDoc = '<SalesInvoices>';
             foreach ($salesInvoices as $key => $salesInvoice) {
-                $xmlDoc .= $salesInvoice -> renderXml();
+                $xmlDoc .= $salesInvoice->renderXml();
             }
             $xmlDoc .= '</SalesInvoices>';
         }
 
-        $xmlvar = new \SoapVar('<ns1:xmlDoc>' . $xmlDoc . '</ns1:xmlDoc>', \XSD_ANYXML);
+        $xmlvar = new \SoapVar('<ns1:xmlDoc>'.$xmlDoc.'</ns1:xmlDoc>', \XSD_ANYXML);
 
-        $request = array(
-            "sessionId"        => $this -> getSessionID(),
-            "administrationId" => $this -> getAdministrationID(),
-            "xmlDoc"           => $xmlvar);
+        $request = [
+            "sessionId" => $this->getSessionID(),
+            "administrationId" => $this->getAdministrationID(),
+            "xmlDoc" => $xmlvar,
+        ];
 
         try {
-            $result = $this -> soap -> ProcessSalesInvoices($request);
+            $result = $this->soap->ProcessSalesInvoices($request);
         } catch (\Exception $ex) {
             // Just pass the exception through and let the index handle the exception
             throw $ex;
         }
 
-        $responseArray = $this -> parseXMLResponse($result -> ProcessSalesInvoicesResult -> any);
+        $responseArray = $this->parseXMLResponse($result->ProcessSalesInvoicesResult->any);
 
         // Response should always contain the next items
         $invoiceCounter = 0;
-        $invoiceResponse = array();
-        $response = array();
+        $invoiceResponse = [];
+        $response = [];
 
         foreach ($responseArray as $key => $value) {
 
             // Check if start of invoice, init a new array for that invoice
             if ($value['tag'] === 'Invoice' && $value['type'] === 'open') {
-                $invoiceResponse[$invoiceCounter] = array();
+                $invoiceResponse[$invoiceCounter] = [];
             }
 
             // check if tag is the level of the invoice

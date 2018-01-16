@@ -18,8 +18,6 @@
 
 namespace Yuki;
 
-require_once __DIR__ . '\Exception\ModelNotFoundException.php';
-
 /**
  * Description of ModelFactory
  *
@@ -32,19 +30,22 @@ class ModelFactory
 
     public static function checkModel($modelName)
     {
-        $modelRef = self::NAMESAPCE_REF . $modelName;
-        return class_exists($modelRef, false);
+        $modelRef = self::NAMESAPCE_REF.$modelName;
+
+        return class_exists($modelRef, true);
     }
 
     public static function getModel($modelName)
     {
-        $modelRef = self::NAMESAPCE_REF . $modelName;
+        $modelRef = self::NAMESAPCE_REF.$modelName;
+
         return new $modelRef;
     }
 
     public static function getName($model)
     {
         $className = get_class($model);
+
         return (substr($className, strrpos($className, '\\') + 1));
     }
 

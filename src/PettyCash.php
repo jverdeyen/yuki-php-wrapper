@@ -18,14 +18,10 @@
 
 namespace Yuki;
 
-require_once __DIR__ . '\Yuki.php';
-
-require_once __DIR__ . '\Exception\InvalidAdministrationIDException.php';
-require_once __DIR__ . '\Exception\InvalidStatementTextException.php';
-require_once __DIR__ . '\Exception\InvalidStatementLineException.php';
-
-require_once __DIR__ . '\Model\StatementLine.php';
-require_once __DIR__ . '\Model\StatementLineProject.php';
+use Yuki\Exception\InvalidAdministrationIDException;
+use Yuki\Exception\InvalidSessionIDException;
+use Yuki\Exception\InvalidStatementLineException;
+use Yuki\Exception\InvalidStatementTextException;
 
 /**
  * Description of the Yuki PettyCash Sub service
@@ -44,31 +40,34 @@ class PettyCash extends Yuki
 
     /**
      * Import Statement CSV string
+     *
      * @param string $statementText
+     *
      * @return stdclass
      * @throws \Exception
      */
     public function importStatementCSV($statementText)
     {
         // Check for sessionId first
-        if (!$this -> getSessionID()) {
-            throw new Exception\InvalidSessionIDException();
+        if (!$this->getSessionID()) {
+            throw new InvalidSessionIDException();
         }
         // Check for sessionId first
-        if (!$this -> getAdministrationID()) {
-            throw new Exception\InvalidAdministrationIDException();
+        if (!$this->getAdministrationID()) {
+            throw new InvalidAdministrationIDException();
         }
         // Check for given domain
         if (!$statementText) {
-            throw new Exception\InvalidStatementTextException();
+            throw new InvalidStatementTextException();
         }
-        $request = array(
-            "sessionID"        => $this -> getSessionID(),
-            "administrationID" => $this -> getAdministrationID(),
-            "statementText"    => $statementText);
+        $request = [
+            "sessionID" => $this->getSessionID(),
+            "administrationID" => $this->getAdministrationID(),
+            "statementText" => $statementText,
+        ];
 
         try {
-            $result = $this -> soap -> ImportStatement($request);
+            $result = $this->soap->ImportStatement($request);
         } catch (\Exception $ex) {
             // Just pss the exception through and let the index handle the exception
             throw $ex;
@@ -79,7 +78,9 @@ class PettyCash extends Yuki
 
     /**
      * Import a single Statement line
+     *
      * @param \Yuki\Model\StatementLine $statementLine
+     *
      * @return type
      * @throws Exception\InvalidStatementLineException
      * @throws \Exception
@@ -88,20 +89,21 @@ class PettyCash extends Yuki
     {
         // Check for given StatementLine
         if (!$statementLine) {
-            throw new Exception\InvalidStatementLineException();
+            throw new InvalidStatementLineException();
         }
-        $request = array(
-            "sessionId"              => $this -> getSessionID(),
-            "accountGlCode"          => $statementLine -> getAccountGlCode(),
-            "transactionCode"        => $statementLine -> getTransactionCode(),
-            "offsetAccount"          => $statementLine -> getOffsetAccount(),
-            "offsetName"             => $statementLine -> getOffsetName(),
-            "transactionDate"        => $statementLine -> getTransactionDate(),
-            "transactionDescription" => $statementLine -> getTransactionDescription(),
-            "amount"                 => $statementLine -> getAmount());
+        $request = [
+            "sessionId" => $this->getSessionID(),
+            "accountGlCode" => $statementLine->getAccountGlCode(),
+            "transactionCode" => $statementLine->getTransactionCode(),
+            "offsetAccount" => $statementLine->getOffsetAccount(),
+            "offsetName" => $statementLine->getOffsetName(),
+            "transactionDate" => $statementLine->getTransactionDate(),
+            "transactionDescription" => $statementLine->getTransactionDescription(),
+            "amount" => $statementLine->getAmount(),
+        ];
 
         try {
-            $result = $this -> soap -> ImportSingleStatementLine($request);
+            $result = $this->soap->ImportSingleStatementLine($request);
         } catch (\Exception $ex) {
             // Just pss the exception through and let the index handle the exception
             throw $ex;
@@ -112,7 +114,9 @@ class PettyCash extends Yuki
 
     /**
      * Import a single Statement Project line
+     *
      * @param \Yuki\Model\StatementLineProject $statementLineProject
+     *
      * @return type
      * @throws Exception\InvalidStatementLineException
      * @throws \Exception
@@ -121,22 +125,23 @@ class PettyCash extends Yuki
     {
         // Check for given StatementLineProject
         if (!$statementLineProject) {
-            throw new Exception\InvalidStatementLineException();
+            throw new InvalidStatementLineException();
         }
-        $request = array(
-            "sessionId"              => $this -> getSessionID(),
-            "accountGlCode"          => $statementLineProject -> getAccountGlCode(),
-            "transactionCode"        => $statementLineProject -> getTransactionCode(),
-            "offsetAccount"          => $statementLineProject -> getOffsetAccount(),
-            "offsetName"             => $statementLineProject -> getOffsetName(),
-            "transactionDate"        => $statementLineProject -> getTransactionDate(),
-            "transactionDescription" => $statementLineProject -> getTransactionDescription(),
-            "amount"                 => $statementLineProject -> getAmount(),
-            "projectCode"            => $statementLineProject -> getProjectCode(),
-            "projectName"            => $statementLineProject -> getProjectName());
+        $request = [
+            "sessionId" => $this->getSessionID(),
+            "accountGlCode" => $statementLineProject->getAccountGlCode(),
+            "transactionCode" => $statementLineProject->getTransactionCode(),
+            "offsetAccount" => $statementLineProject->getOffsetAccount(),
+            "offsetName" => $statementLineProject->getOffsetName(),
+            "transactionDate" => $statementLineProject->getTransactionDate(),
+            "transactionDescription" => $statementLineProject->getTransactionDescription(),
+            "amount" => $statementLineProject->getAmount(),
+            "projectCode" => $statementLineProject->getProjectCode(),
+            "projectName" => $statementLineProject->getProjectName(),
+        ];
 
         try {
-            $result = $this -> soap -> ImportSingleStatementProjectLine($request);
+            $result = $this->soap->ImportSingleStatementProjectLine($request);
         } catch (\Exception $ex) {
             // Just pss the exception through and let the index handle the exception
             throw $ex;

@@ -19,22 +19,22 @@
 require_once 'src/PettyCash.php';
 
 // This part is optional and is just for loading config variables into session
-require __DIR__ . '/vendor/autoload.php';
+require __DIR__.'/vendor/autoload.php';
 $dotenv = new \Dotenv\Dotenv(__DIR__);
-$dotenv -> load();
+$dotenv->load();
 
 // Init new Yuki pettycash object
 try {
     $yuki = (new \Yuki\PettyCash())
-            -> setAccessKey(getenv('API_TOKEN'))
-            -> setAdministrationID(getenv('ADMINISTRATION_ID'))
-            -> authenticate();
+        ->setAccessKey(getenv('API_TOKEN'))
+        ->setAdministrationID(getenv('ADMINISTRATION_ID'))
+        ->authenticate();
 } catch (\Exception $ex) {
-    echo $ex -> getMessage();
+    echo $ex->getMessage();
     exit;
 }
 
 // Load CSV data from file or do some other magic
 $data = "CSV;Content;Here;..";
 
-$result = $yuki -> import($data);
+$result = $yuki->import($data);

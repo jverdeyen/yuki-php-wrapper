@@ -27,39 +27,44 @@ class Domain
 {
 
     private $id;
+
     private $name;
+
     private $url;
 
     public function getId()
     {
-        return $this -> id;
-    }
-
-    public function getName()
-    {
-        return $this -> name;
-    }
-
-    public function getUrl()
-    {
-        return $this -> url;
+        return $this->id;
     }
 
     public function setId($id)
     {
-        $this -> id = $id;
+        $this->id = $id;
+
         return $this;
+    }
+
+    public function getName()
+    {
+        return $this->name;
     }
 
     public function setName($name)
     {
-        $this -> name = $name;
+        $this->name = $name;
+
         return $this;
+    }
+
+    public function getUrl()
+    {
+        return $this->url;
     }
 
     public function setUrl($url)
     {
-        $this -> url = $url;
+        $this->url = $url;
+
         return $this;
     }
 
