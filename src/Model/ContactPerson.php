@@ -10,16 +10,16 @@ namespace Yuki\Model;
 class ContactPerson
 {
     /** @var string */
-    private $firstName;
+    public $firstName;
 
     /** @var string */
-    private $lastName;
+    public $lastName;
 
     /** @var string */
-    private $gender;
+    public $gender;
 
     /** @var string */
-    private $emailAddress;
+    public $emailAddress;
 
     /**
      * @return string
