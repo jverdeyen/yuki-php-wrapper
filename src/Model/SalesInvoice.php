@@ -29,6 +29,8 @@ use Yuki\ModelFactory;
  */
 class SalesInvoice
 {
+    private $paymentID;
+
     private $reference;
 
     private $subject;
@@ -304,4 +306,15 @@ class SalesInvoice
     {
         $this->contactPerson = $contactPerson;
     }
+
+    public function getPaymentID()
+    {
+        return $this->paymentID;
+    }
+
+    public function setPaymentID($paymentID): void
+    {
+        $this->paymentID = $paymentID;
+    }
+
 }
